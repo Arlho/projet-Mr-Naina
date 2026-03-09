@@ -1,0 +1,11 @@
+com\resaka\model\Operateur.class
+com\resaka\model\Parametre.class
+com\resaka\dao\DatabaseConnection.class
+com\resaka\model\Correcteur.class
+com\resaka\servlet\CandidatServlet.class
+com\resaka\servlet\MatiereServlet.class
+com\resaka\model\Matiere.class
+com\resaka\model\Note.class
+com\resaka\servlet\SimulationServlet.class
+com\resaka\servlet\CorrecteurServlet.class
+com\resaka\model\Candidat.class
