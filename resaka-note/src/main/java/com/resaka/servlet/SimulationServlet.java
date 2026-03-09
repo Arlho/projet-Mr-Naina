@@ -83,10 +83,32 @@ public class SimulationServlet extends HttpServlet {
             List<Parametre> parametres = loadParametres(conn, idMatiere);
             request.setAttribute("parametres", parametres);
 
-            // 4. Find the matching parametre (min <= totalGap <= max)
+            // 4. Find the matching parametre based on the operator symbol
             Parametre matchedParametre = null;
             for (Parametre p : parametres) {
-                if (totalGap >= p.getMin() && totalGap <= p.getMax()) {
+                String symb = p.getOperateur().getSymbole();
+                boolean isMatch = false;
+                
+                switch (symb) {
+                    case "<":
+                        isMatch = (totalGap < p.getMax());
+                        break;
+                    case ">=":
+                        isMatch = (totalGap >= p.getMin());
+                        break;
+                    case "<=":
+                        isMatch = (totalGap <= p.getMax());
+                        break;
+                    case ">":
+                        isMatch = (totalGap > p.getMin());
+                        break;
+                    case "between": // Fallback for original logic if needed
+                    default:
+                        isMatch = (totalGap >= p.getMin() && totalGap <= p.getMax());
+                        break;
+                }
+                
+                if (isMatch) {
                     matchedParametre = p;
                     break;
                 }
@@ -99,35 +121,40 @@ public class SimulationServlet extends HttpServlet {
                 return;
             }
 
-            // 5. Resolve the final grade based on the operator
-            String operateurSymbole = matchedParametre.getOperateur().getSymbole();
+            // 5. Resolve the final grade based on the resolution ID or method
+            // Mapping: 1 -> Petit (Average), 2 -> Moyenne (Max), 3 -> Grand (Min)
+            // Note: Since I don't have the resolution table data in the model yet, 
+            // I'll use a mapping based on the ID or the operator name if it changed.
+            
             double finalGrade = 0;
             String resolutionMethod = "";
+            int resId = matchedParametre.getIdResolution();
 
-            switch (operateurSymbole) {
-                case "+":
-                    // Addition → take the HIGHEST note
-                    finalGrade = notes.stream().mapToDouble(Note::getValeurNote).max().orElse(0);
-                    resolutionMethod = "Note la plus haute (opérateur +)";
-                    break;
-                case "-":
-                    // Soustraction → take the LOWEST note
-                    finalGrade = notes.stream().mapToDouble(Note::getValeurNote).min().orElse(0);
-                    resolutionMethod = "Note la plus basse (opérateur -)";
-                    break;
-                case "*":
-                    // Multiplication → take the AVERAGE
-                    finalGrade = notes.stream().mapToDouble(Note::getValeurNote).average().orElse(0);
-                    resolutionMethod = "Moyenne des notes (opérateur *)";
-                    break;
-                case "/":
-                    // Division → take the AVERAGE (alternative)
-                    finalGrade = notes.stream().mapToDouble(Note::getValeurNote).average().orElse(0);
-                    resolutionMethod = "Moyenne des notes (opérateur /)";
-                    break;
-                default:
-                    finalGrade = notes.stream().mapToDouble(Note::getValeurNote).average().orElse(0);
-                    resolutionMethod = "Moyenne par défaut";
+            if (resId == 1) {
+                finalGrade = notes.stream().mapToDouble(Note::getValeurNote).average().orElse(0);
+                resolutionMethod = "Moyenne des notes";
+            } else if (resId == 2) {
+                finalGrade = notes.stream().mapToDouble(Note::getValeurNote).max().orElse(0);
+                resolutionMethod = "Note la plus haute";
+            } else if (resId == 3) {
+                finalGrade = notes.stream().mapToDouble(Note::getValeurNote).min().orElse(0);
+                resolutionMethod = "Note la plus basse";
+            } else {
+                // Fallback to legacy operator-based resolution if no resolution ID matches
+                String opSymb = matchedParametre.getOperateur().getSymbole();
+                switch (opSymb) {
+                    case "+":
+                        finalGrade = notes.stream().mapToDouble(Note::getValeurNote).max().orElse(0);
+                        resolutionMethod = "Note la plus haute";
+                        break;
+                    case "-":
+                        finalGrade = notes.stream().mapToDouble(Note::getValeurNote).min().orElse(0);
+                        resolutionMethod = "Note la plus basse";
+                        break;
+                    default:
+                        finalGrade = notes.stream().mapToDouble(Note::getValeurNote).average().orElse(0);
+                        resolutionMethod = "Moyenne des notes";
+                }
             }
 
             // Round to 2 decimal places
@@ -203,7 +230,7 @@ public class SimulationServlet extends HttpServlet {
 
     private List<Parametre> loadParametres(Connection conn, int idMatiere) throws SQLException {
         List<Parametre> list = new ArrayList<>();
-        String sql = "SELECT p.id, p.id_operateur, p.id_matiere, p.min, p.max, "
+        String sql = "SELECT p.id, p.id_operateur, p.id_matiere, p.id_resolution, p.min, p.max, "
                 + "o.id as op_id, o.nom as op_nom, o.symbole as op_symbole "
                 + "FROM parametre p JOIN operateur o ON p.id_operateur = o.id "
                 + "WHERE p.id_matiere = ? ORDER BY p.min";
@@ -215,6 +242,13 @@ public class SimulationServlet extends HttpServlet {
                     p.setId(rs.getInt("id"));
                     p.setIdOperateur(rs.getInt("id_operateur"));
                     p.setIdMatiere(rs.getInt("id_matiere"));
+                    // Use a safe check for id_resolution if it was just added manually
+                    try {
+                        p.setIdResolution(rs.getInt("id_resolution"));
+                    } catch (SQLException e) {
+                        // Fallback if column still hasn't been added to the DB but is in SQL
+                        p.setIdResolution(0);
+                    }
                     p.setMin(rs.getInt("min"));
                     p.setMax(rs.getInt("max"));
 

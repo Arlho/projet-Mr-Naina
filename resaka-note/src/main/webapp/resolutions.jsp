@@ -5,14 +5,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Correcteurs - Resaka Note</title>
+    <title>Résolutions - Resaka Note</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
 </head>
 <body>
     <div class="page-wrapper">
         <%@ include file="nav.jsp" %>
 
-        <h1>&#128221; Gestion des Correcteurs</h1>
+        <h1>✅ Gestion des Résolutions</h1>
 
         <c:if test="${not empty success}">
             <div class="alert alert-success">${success}</div>
@@ -21,56 +21,54 @@
             <div class="alert alert-error">${error}</div>
         </c:if>
 
-        <!-- Form -->
         <div class="card">
             <div class="card-title">
-                ${not empty editCorrecteur ? 'Modifier le correcteur' : 'Ajouter un correcteur'}
+                ${not empty editResolution ? 'Modifier la résolution' : 'Ajouter une résolution'}
             </div>
-            <form action="${pageContext.request.contextPath}/correcteurs" method="post">
-                <c:if test="${not empty editCorrecteur}">
-                    <input type="hidden" name="id" value="${editCorrecteur.id}">
+            <form action="${pageContext.request.contextPath}/resolutions" method="post">
+                <c:if test="${not empty editResolution}">
+                    <input type="hidden" name="id" value="${editResolution.id}">
                 </c:if>
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="nom">Nom</label>
-                        <input type="text" id="nom" name="nom" value="${editCorrecteur.nom}" required placeholder="Ex: Dupont">
+                        <label for="description">Description (Nom)</label>
+                        <input type="text" id="description" name="description" value="${editResolution.description}" required placeholder="Ex: Petit">
                     </div>
                 </div>
                 <div class="form-row">
                     <button type="submit" class="btn btn-primary">
-                        ${not empty editCorrecteur ? '&#10004; Modifier' : '&#10010; Ajouter'}
+                        ${not empty editResolution ? '✔ Modifier' : '➕ Ajouter'}
                     </button>
-                    <c:if test="${not empty editCorrecteur}">
-                        <a href="${pageContext.request.contextPath}/correcteurs" class="btn btn-edit">Annuler</a>
+                    <c:if test="${not empty editResolution}">
+                        <a href="${pageContext.request.contextPath}/resolutions" class="btn btn-edit">Annuler</a>
                     </c:if>
                 </div>
             </form>
         </div>
 
-        <!-- List -->
         <div class="card">
-            <div class="card-title">Liste des correcteurs (${correcteurs.size()})</div>
+            <div class="card-title">Liste des résolutions (${resolutions.size()})</div>
             <c:choose>
-                <c:when test="${empty correcteurs}">
-                    <p style="color:rgba(255,255,255,0.5); text-align:center; padding:1rem;">Aucun correcteur enregistré.</p>
+                <c:when test="${empty resolutions}">
+                    <p style="color:rgba(255,255,255,0.5); text-align:center; padding:1rem;">Aucune résolution enregistrée.</p>
                 </c:when>
                 <c:otherwise>
                     <table>
                         <thead>
                             <tr>
                                 <th>ID</th>
-                                <th>Nom</th>
+                                <th>Description</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <c:forEach var="c" items="${correcteurs}">
+                            <c:forEach var="r" items="${resolutions}">
                                 <tr>
-                                    <td>${c.id}</td>
-                                    <td>${c.nom}</td>
+                                    <td>${r.id}</td>
+                                    <td>${r.description}</td>
                                     <td class="actions">
-                                        <a href="${pageContext.request.contextPath}/correcteurs?action=edit&id=${c.id}" class="btn btn-edit btn-sm">&#9998;</a>
-                                        <a href="${pageContext.request.contextPath}/correcteurs?action=delete&id=${c.id}" class="btn btn-danger btn-sm" onclick="return confirm('Supprimer ce correcteur ?')">&#128465;</a>
+                                        <a href="${pageContext.request.contextPath}/resolutions?action=edit&id=${r.id}" class="btn btn-edit btn-sm">✎</a>
+                                        <a href="${pageContext.request.contextPath}/resolutions?action=delete&id=${r.id}" class="btn btn-danger btn-sm" onclick="return confirm('Supprimer cette résolution ?')">🗑</a>
                                     </td>
                                 </tr>
                             </c:forEach>

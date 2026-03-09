@@ -43,93 +43,70 @@ CREATE TABLE operateur (
     symbole VARCHAR(10) NOT NULL
 );
 
-CREATE TABLE parametre (
-    id SERIAL PRIMARY KEY,
-    id_operateur INTEGER REFERENCES operateur(id),
-    id_matiere INTEGER REFERENCES matiere(id_matiere),
-    min INT,
-    max INT
-);
-
 CREATE TABLE resolution (
     id SERIAL PRIMARY KEY,
     description TEXT,
     resultat NUMERIC
 );
 
--- Initial Data: Operateurs
-INSERT INTO operateur (nom, symbole) VALUES 
-    ('Addition', '+'), 
-    ('Soustraction', '-'), 
-    ('Multiplication', '*'), 
-    ('Division', '/');
+CREATE TABLE parametre (
+    id SERIAL PRIMARY KEY,
+    id_operateur INTEGER REFERENCES operateur(id),
+    id_matiere INTEGER REFERENCES matiere(id_matiere),
+    id_resolution INTEGER REFERENCES resolution(id),
+    min INT,
+    max INT
+);
+
+-- Initial Data: Operateurs (Comparison symbols)
+INSERT INTO operateur (id, nom, symbole) VALUES 
+    (1, 'Inferieur', '<'), 
+    (2, 'SuperieurOuEgal', '>='), 
+    (3, 'InferieurOuEgal', '<='), 
+    (4, 'Superieur', '>');
+SELECT setval('operateur_id_seq', 4);
+
+-- Resolutions (Calculation Methods)
+INSERT INTO resolution (id, description) VALUES 
+    (1, 'Petit'), 
+    (2, 'Moyenne'), 
+    (3, 'Grand');
+SELECT setval('resolution_id_seq', 3);
 
 -- Correcteurs
-INSERT INTO correcteur (nom) VALUES ('Louis'), ('Nyaina'), ('Mikolo');
+INSERT INTO correcteur (id, nom) VALUES (1, 'Correcteur1'), (2, 'Correcteur2'), (3, 'Correcteur3');
+SELECT setval('correcteur_id_seq', 3);
 
 -- Candidats
-INSERT INTO candidat (nom, prenom, matricule) VALUES
-    ('Rakoto', 'Jean', 'MAT001'),
-    ('Rabe', 'Marie', 'MAT002'),
-    ('Randria', 'Paul', 'MAT003');
+INSERT INTO candidat (id, nom, prenom, matricule) VALUES
+    (1, 'Candidat1', 'Test', 'C001'),
+    (2, 'Candidat2', 'Test', 'C002');
+SELECT setval('candidat_id_seq', 2);
 
 -- Matieres
-INSERT INTO matiere (nom, coefficient) VALUES
-    ('Mathematiques', 3),
-    ('Physique', 2),
-    ('Informatique', 4);
+INSERT INTO matiere (id_matiere, nom, coefficient) VALUES
+    (1, 'JAVA', 1),
+    (2, 'PHP', 1);
+SELECT setval('matiere_id_matiere_seq', 2);
 
--- Parametres (min-max ranges with operators per matiere)
--- Mathematiques (id_matiere=1): small gap = average(*), medium gap = highest(+), large gap = lowest(-)
-INSERT INTO parametre (id_operateur, id_matiere, min, max) VALUES
-    (3, 1, 0, 5),    -- gap 0-5 : * (average)
-    (1, 1, 6, 15),   -- gap 6-15 : + (highest)
-    (2, 1, 16, 100);  -- gap 16+ : - (lowest)
+-- Parametres (mapping to resolutions: 1=Petit/Avg, 2=Moyenne/Max, 3=Grand/Min)
+-- JAVA (id_matiere=1): 
+-- Gap 10 (Candidat 1) -> Avg (1)
+-- Gap 6 (Candidat 2) -> Max (2)
+INSERT INTO parametre (id_operateur, id_matiere, id_resolution, min, max) VALUES
+    (2, 1, 1, 10, 100), -- >= 10 : Average (Petit)
+    (1, 1, 2, 0, 10);   -- < 10  : Max (Moyenne)
 
--- Physique (id_matiere=2)
-INSERT INTO parametre (id_operateur, id_matiere, min, max) VALUES
-    (3, 2, 0, 4),    -- gap 0-4 : * (average)
-    (1, 2, 5, 10),   -- gap 5-10 : + (highest)
-    (2, 2, 11, 100);  -- gap 11+ : - (lowest)
+-- PHP (id_matiere=2):
+-- Gap 0 (Candidat 1) -> Avg (1)
+-- Gap 2 (Candidat 2) -> Min (3)
+INSERT INTO parametre (id_operateur, id_matiere, id_resolution, min, max) VALUES
+    (3, 2, 1, 0, 0),    -- <= 0 : Average (Petit)
+    (4, 2, 3, 0, 100);  -- > 0  : Min (Grand)
 
--- Informatique (id_matiere=3)
-INSERT INTO parametre (id_operateur, id_matiere, min, max) VALUES
-    (3, 3, 0, 6),    -- gap 0-6 : * (average)
-    (1, 3, 7, 12),   -- gap 7-12 : + (highest)
-    (2, 3, 13, 100);  -- gap 13+ : - (lowest)
-
--- Notes: Candidat 1 (Rakoto Jean)
+-- Notes
 INSERT INTO note (id_candidat, id_matiere, id_correcteur, valeur_note) VALUES
-    (1, 1, 1, 14),  -- Math, Louis: 14
-    (1, 1, 2, 12),  -- Math, Nyaina: 12
-    (1, 1, 3, 15),  -- Math, Mikolo: 15
-    (1, 2, 1, 10),  -- Physique, Louis: 10
-    (1, 2, 2, 16),  -- Physique, Nyaina: 16
-    (1, 2, 3, 13),  -- Physique, Mikolo: 13
-    (1, 3, 1, 17),  -- Info, Louis: 17
-    (1, 3, 2, 18),  -- Info, Nyaina: 18
-    (1, 3, 3, 16);  -- Info, Mikolo: 16
-
--- Notes: Candidat 2 (Rabe Marie)
-INSERT INTO note (id_candidat, id_matiere, id_correcteur, valeur_note) VALUES
-    (2, 1, 1, 8),   -- Math, Louis: 8
-    (2, 1, 2, 15),  -- Math, Nyaina: 15
-    (2, 1, 3, 11),  -- Math, Mikolo: 11
-    (2, 2, 1, 12),  -- Physique, Louis: 12
-    (2, 2, 2, 13),  -- Physique, Nyaina: 13
-    (2, 2, 3, 11),  -- Physique, Mikolo: 11
-    (2, 3, 1, 9),   -- Info, Louis: 9
-    (2, 3, 2, 14),  -- Info, Nyaina: 14
-    (2, 3, 3, 7);   -- Info, Mikolo: 7
-
--- Notes: Candidat 3 (Randria Paul)
-INSERT INTO note (id_candidat, id_matiere, id_correcteur, valeur_note) VALUES
-    (3, 1, 1, 18),  -- Math, Louis: 18
-    (3, 1, 2, 17),  -- Math, Nyaina: 17
-    (3, 1, 3, 19),  -- Math, Mikolo: 19
-    (3, 2, 1, 5),   -- Physique, Louis: 5
-    (3, 2, 2, 15),  -- Physique, Nyaina: 15
-    (3, 2, 3, 8),   -- Physique, Mikolo: 8
-    (3, 3, 1, 11),  -- Info, Louis: 11
-    (3, 3, 2, 12),  -- Info, Nyaina: 12
-    (3, 3, 3, 10);  -- Info, Mikolo: 10
+    (1, 1, 1, 15), (1, 1, 2, 10), (1, 1, 3, 12),
+    (2, 1, 1, 9), (2, 1, 2, 8), (2, 1, 3, 11),
+    (1, 2, 1, 10), (1, 2, 2, 10),
+    (2, 2, 1, 13), (2, 2, 2, 11);
