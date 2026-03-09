@@ -4,16 +4,18 @@ public class Parametre {
     private int id;
     private int idOperateur;
     private int idMatiere;
+    private int idResolution;
     private int min;
     private int max;
     private Operateur operateur; // joined field
 
     public Parametre() {}
 
-    public Parametre(int id, int idOperateur, int idMatiere, int min, int max) {
+    public Parametre(int id, int idOperateur, int idMatiere, int idResolution, int min, int max) {
         this.id = id;
         this.idOperateur = idOperateur;
         this.idMatiere = idMatiere;
+        this.idResolution = idResolution;
         this.min = min;
         this.max = max;
     }
@@ -24,6 +26,8 @@ public class Parametre {
     public void setIdOperateur(int idOperateur) { this.idOperateur = idOperateur; }
     public int getIdMatiere() { return idMatiere; }
     public void setIdMatiere(int idMatiere) { this.idMatiere = idMatiere; }
+    public int getIdResolution() { return idResolution; }
+    public void setIdResolution(int idResolution) { this.idResolution = idResolution; }
     public int getMin() { return min; }
     public void setMin(int min) { this.min = min; }
     public int getMax() { return max; }

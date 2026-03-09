@@ -1,6 +1,7 @@
 com\resaka\model\Operateur.class
 com\resaka\model\Parametre.class
 com\resaka\dao\DatabaseConnection.class
+com\resaka\model\Resolution.class
 com\resaka\model\Correcteur.class
 com\resaka\servlet\CandidatServlet.class
 com\resaka\servlet\MatiereServlet.class

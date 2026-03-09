@@ -10,12 +10,7 @@
 </head>
 <body>
     <div class="page-wrapper">
-        <nav class="nav">
-            <a href="${pageContext.request.contextPath}/simulation" class="active">&#9889; Simulation</a>
-            <a href="${pageContext.request.contextPath}/candidats">&#128100; Candidats</a>
-            <a href="${pageContext.request.contextPath}/correcteurs">&#128221; Correcteurs</a>
-            <a href="${pageContext.request.contextPath}/matieres">&#128214; Matières</a>
-        </nav>
+        <%@ include file="nav.jsp" %>
 
         <div class="center-wrapper">
             <div class="card narrow-card">

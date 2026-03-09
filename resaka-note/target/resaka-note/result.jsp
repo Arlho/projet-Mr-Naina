@@ -11,12 +11,7 @@
 </head>
 <body>
     <div class="page-wrapper">
-        <nav class="nav">
-            <a href="${pageContext.request.contextPath}/simulation" class="active">&#9889; Simulation</a>
-            <a href="${pageContext.request.contextPath}/candidats">&#128100; Candidats</a>
-            <a href="${pageContext.request.contextPath}/correcteurs">&#128221; Correcteurs</a>
-            <a href="${pageContext.request.contextPath}/matieres">&#128214; Matières</a>
-        </nav>
+        <%@ include file="nav.jsp" %>
 
         <a href="${pageContext.request.contextPath}/simulation" class="back-link">&#8592; Retour à la sélection</a>
 
@@ -106,16 +101,22 @@
                                 <td>${p.min}</td>
                                 <td>${p.max}</td>
                                 <td>
-                                    <span class="badge ${p.operateur.symbole == '+' ? 'badge-plus' : p.operateur.symbole == '-' ? 'badge-minus' : p.operateur.symbole == '*' ? 'badge-mult' : 'badge-div'}">
+                                    <span class="badge ${p.operateur.symbole == '+' ? 'badge-plus' : p.operateur.symbole == '-' ? 'badge-minus' : p.operateur.symbole == '*' ? 'badge-mult' : 'badge-default'}">
                                         ${p.operateur.symbole} ${p.operateur.nom}
                                     </span>
                                 </td>
                                 <td>
                                     <c:choose>
-                                        <c:when test="${p.operateur.symbole == '+'}">Note la plus haute</c:when>
-                                        <c:when test="${p.operateur.symbole == '-'}">Note la plus basse</c:when>
-                                        <c:when test="${p.operateur.symbole == '*'}">Moyenne</c:when>
-                                        <c:when test="${p.operateur.symbole == '/'}">Moyenne</c:when>
+                                        <c:when test="${p.idResolution == 1}">Moyenne</c:when>
+                                        <c:when test="${p.idResolution == 2}">Note Max</c:when>
+                                        <c:when test="${p.idResolution == 3}">Note Min</c:when>
+                                        <c:otherwise>
+                                            <c:choose>
+                                                <c:when test="${p.operateur.symbole == '+'}">Note Max</c:when>
+                                                <c:when test="${p.operateur.symbole == '-'}">Note Min</c:when>
+                                                <c:otherwise>Moyenne</c:otherwise>
+                                            </c:choose>
+                                        </c:otherwise>
                                     </c:choose>
                                 </td>
                             </tr>

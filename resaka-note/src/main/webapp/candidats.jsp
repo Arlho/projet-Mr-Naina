@@ -10,12 +10,7 @@
 </head>
 <body>
     <div class="page-wrapper">
-        <nav class="nav">
-            <a href="${pageContext.request.contextPath}/simulation">&#9889; Simulation</a>
-            <a href="${pageContext.request.contextPath}/candidats" class="active">&#128100; Candidats</a>
-            <a href="${pageContext.request.contextPath}/correcteurs">&#128221; Correcteurs</a>
-            <a href="${pageContext.request.contextPath}/matieres">&#128214; Matières</a>
-        </nav>
+        <%@ include file="nav.jsp" %>
 
         <h1>&#128100; Gestion des Candidats</h1>
 
