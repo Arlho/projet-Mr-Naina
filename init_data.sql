@@ -102,7 +102,7 @@ INSERT INTO parametre (id_operateur, id_matiere, id_resolution, min, max) VALUES
 -- Gap 2 (Candidat 2) -> Min (3)
 INSERT INTO parametre (id_operateur, id_matiere, id_resolution, min, max) VALUES
     (3, 2, 1, 0, 0),    -- <= 0 : Average (Petit)
-    (4, 2, 3, 0, 100);  -- > 0  : Min (Grand)
+    (4, 2, 3, 0, 100);  -- > 0  : Min (Grand);
 
 -- Notes
 INSERT INTO note (id_candidat, id_matiere, id_correcteur, valeur_note) VALUES
