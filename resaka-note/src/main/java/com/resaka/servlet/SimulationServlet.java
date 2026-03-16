@@ -113,6 +113,46 @@ public class SimulationServlet extends HttpServlet {
                     break;
                 }
             }
+
+            if (matchedParametre == null && parametres != null && !parametres.isEmpty()) {
+                Parametre closestParam = null;
+                double minDifference = Double.MAX_VALUE;
+
+                for (Parametre p : parametres) {
+                    double maxVal = p.getMax();
+                    double minVal = p.getMin();
+                    
+                    if (maxVal <= totalGap) {
+                        double diff = totalGap - maxVal;
+                        if (diff < minDifference) {
+                            minDifference = diff;
+                            closestParam = p;
+                        }
+                    }
+                    
+                    if (minVal <= totalGap) {
+                        double diff = totalGap - minVal;
+                        if (diff < minDifference) {
+                            minDifference = diff;
+                            closestParam = p;
+                        }
+                    }
+                }
+
+                if (closestParam == null) {
+                    double bestMinVal = Double.MAX_VALUE;
+                    for (Parametre p : parametres) {
+                        double currentMinParamVal = Math.min(p.getMin(), p.getMax());
+                        if (closestParam == null || currentMinParamVal < bestMinVal) {
+                            closestParam = p;
+                            bestMinVal = currentMinParamVal;
+                        }
+                    }
+                }
+                matchedParametre = closestParam;
+                request.setAttribute("fallbackMessage", "Aucun seuil exact trouvé. Utilisation du paramètre le plus proche inférieur.");
+            }
+
             request.setAttribute("matchedParametre", matchedParametre);
 
             if (matchedParametre == null) {

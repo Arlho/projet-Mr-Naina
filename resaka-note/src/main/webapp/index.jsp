@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
 </head>
 <body>
+
     <div class="page-wrapper">
         <%@ include file="nav.jsp" %>
 
@@ -46,7 +47,7 @@
                 </select>
             </div>
 
-            <button type="submit" class="btn">&#9889; Simuler le calcul</button>
+            <button type="submit" class="btn btn-primary">Simuler le calcul</button>
         </form>
             </div>
         </div>
