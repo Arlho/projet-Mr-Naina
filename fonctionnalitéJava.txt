@@ -1,0 +1,133 @@
+Détail des Fonctions et Classes Java (.java)
+Voici la description approfondie de chaque classe Java présente dans le dossier src/main/java/com/resaka/ et des méthodes / fonctions qu’elles contiennent.
+
+1. La couche d'Accès aux Données (DAO)
+Package : com.resaka.dao
+
+DatabaseConnection.java
+Cette classe gère la connexion à la base de données PostgreSQL.
+
+getConnection() throws SQLException
+ :
+Rôle : C'est une méthode statique qui charge le pilote JDBC (org.postgresql.Driver) et retourne un objet 
+Connection
+ prêt à l'emploi.
+Utilisation : Appelée par tous les Servlets lorsqu'ils ont besoin de lire ou d'écrire dans la base de données (ex: DatabaseConnection.getConnection()).
+2. Le Modèle de Données (Les "POJO")
+Package : com.resaka.model
+
+Ce package contient les objets représentant les tables de la base de données. Toutes ces classes partagent la même structure basique :
+
+Des attributs privés (ex: 
+id
+, nom, valeurNote...) qui correspondent aux colonnes des tables.
+Un constructeur vide (ex: public Candidat() {}) utilisé pour instancier un objet vierge.
+Un constructeur avec arguments pour créer l'objet et y insérer les valeurs directement.
+Des getters et des setters (ex: 
+getId()
+, setNom(String nom)) : Ces méthodes permettent de lire et de modifier les attributs privés. Ceux-ci sont obligatoires pour que les bibliothèques d'affichage (JSTL dans les 
+.jsp
+) puissent afficher les valeurs.
+Les classes du modèle :
+
+Candidat.java
+ (id, nom, prenom, matricule)
+Matiere.java
+ (idMatiere, nom, coefficient)
+Correcteur.java
+ (id, nom)
+Note.java
+ (id, idCandidat, idMatiere, idCorrecteur, valeurNote, correcteurNom)
+Operateur.java
+ (id, nom, symbole)
+Parametre.java
+ (id, idOperateur, idMatiere, idResolution, min, max, operateur)
+Resolution.java
+ (id, description, resultat)
+3. La Logique Métier (Le Service)
+Package : com.resaka.service
+
+ResultatService.java
+Cette classe contient la logique pure du projet, déconnectée de la base de données.
+
+calculateFinalGrade(List notes, List parametres) : double
+Rôle : C'est le cœur du système. Cette fonction prend en entrée la liste des notes d'un étudiant pour une matière, et la liste des règles (paramètres) de cette matière. Elle retourne la note finale.
+Étapes de la fonction :
+Si la liste est vide, retourne 0. S'il n'y a qu'une note, elle la retourne directement.
+Calcule la somme des écarts absolus (le "gap") entre toutes les notes de la liste en utilisant deux boucles imbriquées.
+Fait correspondre cet écart avec l'un des paramètres (règles) en utilisant un switch sur le symbole de l'opérateur (<, <=, >, >=, ou entre min/max).
+Si un paramètre correspond, elle regarde son id_resolution :
+1 : Elle applique la fonction .average() (Moyenne) sur la liste des notes.
+2 : Elle applique .max() (Note la plus haute).
+3 : Elle applique .min() (Note la plus basse).
+Elle arrondit le résultat final à deux décimales et le retourne.
+4. Les Contrôleurs (Les Servlets)
+Package : com.resaka.servlet
+
+Les Servlets font le pont entre les pages Web (JSP) et la base de données. Presque tous les Servlets (comme 
+CandidatServlet
+, MatiereServlet, etc.) fonctionnent pour le "CRUD" (Création, Lecture, Mise à jour, Suppression) et partagent des méthodes similaires :
+
+Servlets classiques (ex: 
+CandidatServlet.java
+)
+doGet(HttpServletRequest req, HttpServletResponse resp)
+ :
+Rôle : Se déclenche quand on charge la page.
+Elle lit le paramètre "action" de l'URL (?action=edit ou ?action=delete).
+Si action=delete, elle exécute un DELETE FROM ....
+Si action=edit, elle exécute un SELECT ... WHERE id=? pour charger les données dans le formulaire.
+Dans tous les cas, elle finit toujours par faire un SELECT * FROM ... pour charger toute la liste et l'envoyer à la page 
+.jsp
+ via request.setAttribute("candidats", list).
+doPost(HttpServletRequest req, HttpServletResponse resp)
+ :
+Rôle : Se déclenche quand l'utilisateur soumet un formulaire (Bouton "Enregistrer").
+Elle récupère le texte tapé dans les champs (via request.getParameter(...)).
+S'il y a un 
+id
+, elle fait un UPDATE. Sinon, elle effectue un INSERT INTO.
+Les Servlets Spéciaux de Calcul
+SimulationServlet.java
+ (Pour tester et voir les détails d'un cas)
+doGet(...)
+ : Charge les listes des candidats et matières pour remplir les menus déroulants du formulaire de simulation.
+doPost(...)
+ : Traite la simulation quand le formulaire est soumis.
+Lit le candidat et la matière choisis.
+Utilise les méthodes privées (
+loadNotes
+, 
+loadParametres
+) pour récupérer les infos SQL.
+Reproduit la logique mathématique (calcul de l’écart et choix de la règle) dans son propre corps (c'est une version un peu plus verbeuse de 
+ResultatService
+ car elle stocke les étapes dans des String pour les afficher sur la page).
+Exécute request.getRequestDispatcher("/result.jsp").forward(...) pour afficher la page de rapport avec la moyenne, les détails des écarts, etc.
+Méthodes privées d'aide :
+loadCandidats(Connection conn)
+ : Récupère la liste des candidats.
+loadMatieres(Connection conn)
+ : Récupère les matières.
+loadNotes(Connection conn, int idC, int idM)
+ : Fait un SELECT ... JOIN pour avoir les notes de ce duo candidat/matière précis.
+loadParametres(Connection, int idM)
+ : Récupère les règles lièes à cette matière.
+ResultatsServlet.java
+ (Pour le tableau général des notes)
+doGet(...)
+ :
+Charge tous les candidats et matières.
+Crée une Map (Dictionnaire) complexe Map<Integer, Map<Integer, Double>> finalGrades pour stocker la "Note finale d'une Matière X pour l’Étudiant Y".
+Effectue des boucles imbriquées : pour chaque candidat et pour chaque matière, elle charge les notes depuis la DB.
+Appel clé : Elle passe la liste des notes à ResultatService.calculateFinalGrade(...) pour obtenir la note finale propre.
+Injecte la Map complétée dans la requête et renvoie vers la page 
+resultats.jsp
+ pour dessiner le grand tableau final.
+Ses méthodes privées (
+loadCandidats
+, 
+loadNotes
+, etc.) sont quasiment des copier-coller de celles présentes dans 
+SimulationServlet
+ pour charger les listes SQL.

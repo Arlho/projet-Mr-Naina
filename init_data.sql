@@ -30,9 +30,9 @@ CREATE TABLE correcteur (
 
 CREATE TABLE note (
     id SERIAL PRIMARY KEY,
-    id_candidat INTEGER REFERENCES candidat(id),
-    id_matiere INTEGER REFERENCES matiere(id_matiere),
-    id_correcteur INTEGER REFERENCES correcteur(id),
+    id_candidat INTEGER REFERENCES candidat(id) ON DELETE CASCADE,
+    id_matiere INTEGER REFERENCES matiere(id_matiere) ON DELETE CASCADE,
+    id_correcteur INTEGER REFERENCES correcteur(id) ON DELETE CASCADE,
     valeur_note NUMERIC NOT NULL
 );
 
@@ -51,9 +51,9 @@ CREATE TABLE resolution (
 
 CREATE TABLE parametre (
     id SERIAL PRIMARY KEY,
-    id_operateur INTEGER REFERENCES operateur(id),
-    id_matiere INTEGER REFERENCES matiere(id_matiere),
-    id_resolution INTEGER REFERENCES resolution(id),
+    id_operateur INTEGER REFERENCES operateur(id) ON DELETE CASCADE,
+    id_matiere INTEGER REFERENCES matiere(id_matiere) ON DELETE CASCADE,
+    id_resolution INTEGER REFERENCES resolution(id) ON DELETE CASCADE,
     min INT,
     max INT
 );

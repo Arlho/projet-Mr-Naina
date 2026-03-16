@@ -23,6 +23,12 @@
             <div class="error">${error}</div>
         </c:if>
 
+        <c:if test="${not empty fallbackMessage}">
+            <div class="error" style="background-color: #e2e3e5; color: #383d41; border-left-color: #6c757d;">
+                &#9432;&#65039; ${fallbackMessage}
+            </div>
+        </c:if>
+
         <c:if test="${not empty selectedCandidat}">
             <!-- Student & Subject Info -->
             <div class="card">

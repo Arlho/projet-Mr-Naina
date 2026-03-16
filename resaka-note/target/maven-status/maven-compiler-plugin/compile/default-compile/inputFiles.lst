@@ -6,7 +6,13 @@ D:\ITU\S6\Mr Naina\Resaka note\resaka-note\src\main\java\com\resaka\model\Note.j
 D:\ITU\S6\Mr Naina\Resaka note\resaka-note\src\main\java\com\resaka\model\Operateur.java
 D:\ITU\S6\Mr Naina\Resaka note\resaka-note\src\main\java\com\resaka\model\Parametre.java
 D:\ITU\S6\Mr Naina\Resaka note\resaka-note\src\main\java\com\resaka\model\Resolution.java
+D:\ITU\S6\Mr Naina\Resaka note\resaka-note\src\main\java\com\resaka\service\ResultatService.java
 D:\ITU\S6\Mr Naina\Resaka note\resaka-note\src\main\java\com\resaka\servlet\CandidatServlet.java
 D:\ITU\S6\Mr Naina\Resaka note\resaka-note\src\main\java\com\resaka\servlet\CorrecteurServlet.java
 D:\ITU\S6\Mr Naina\Resaka note\resaka-note\src\main\java\com\resaka\servlet\MatiereServlet.java
+D:\ITU\S6\Mr Naina\Resaka note\resaka-note\src\main\java\com\resaka\servlet\NoteServlet.java
+D:\ITU\S6\Mr Naina\Resaka note\resaka-note\src\main\java\com\resaka\servlet\OperateurServlet.java
+D:\ITU\S6\Mr Naina\Resaka note\resaka-note\src\main\java\com\resaka\servlet\ParametreServlet.java
+D:\ITU\S6\Mr Naina\Resaka note\resaka-note\src\main\java\com\resaka\servlet\ResolutionServlet.java
+D:\ITU\S6\Mr Naina\Resaka note\resaka-note\src\main\java\com\resaka\servlet\ResultatsServlet.java
 D:\ITU\S6\Mr Naina\Resaka note\resaka-note\src\main\java\com\resaka\servlet\SimulationServlet.java
