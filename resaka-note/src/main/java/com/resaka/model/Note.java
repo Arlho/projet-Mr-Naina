@@ -6,7 +6,9 @@ public class Note {
     private int idMatiere;
     private int idCorrecteur;
     private double valeurNote;
-    private String correcteurNom; // joined field for display
+    private String correcteurNom; 
+    private String candidatNom;   
+    private String matiereNom;    
 
     public Note() {}
 
@@ -30,4 +32,8 @@ public class Note {
     public void setValeurNote(double valeurNote) { this.valeurNote = valeurNote; }
     public String getCorrecteurNom() { return correcteurNom; }
     public void setCorrecteurNom(String correcteurNom) { this.correcteurNom = correcteurNom; }
+    public String getCandidatNom() { return candidatNom; }
+    public void setCandidatNom(String candidatNom) { this.candidatNom = candidatNom; }
+    public String getMatiereNom() { return matiereNom; }
+    public void setMatiereNom(String matiereNom) { this.matiereNom = matiereNom; }
 }

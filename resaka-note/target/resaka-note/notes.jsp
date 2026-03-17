@@ -103,10 +103,8 @@
                             <c:forEach var="n" items="${notes}">
                                 <tr>
                                     <td>${n.id}</td>
-                                    <c:set var="candKey" value="note_${n.id}_candidat" />
-                                    <c:set var="matKey" value="note_${n.id}_matiere" />
-                                    <td>${requestScope[candKey]}</td>
-                                    <td>${requestScope[matKey]}</td>
+                                    <td>${n.candidatNom}</td>
+                                    <td>${n.matiereNom}</td>
                                     <td>${n.correcteurNom}</td>
                                     <td><strong>${n.valeurNote}</strong> / 20</td>
                                     <td class="actions">

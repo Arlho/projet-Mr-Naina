@@ -1,6 +1,9 @@
 package com.resaka.servlet;
 
-import com.resaka.dao.DatabaseConnection;
+import com.resaka.dao.CandidatDAO;
+import com.resaka.dao.MatiereDAO;
+import com.resaka.dao.NoteDAO;
+import com.resaka.dao.ParametreDAO;
 import com.resaka.model.*;
 
 import javax.servlet.ServletException;
@@ -10,9 +13,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,14 +20,17 @@ import java.util.List;
 @WebServlet("/simulation")
 public class SimulationServlet extends HttpServlet {
 
+    private final CandidatDAO candidatDAO = new CandidatDAO();
+    private final MatiereDAO matiereDAO = new MatiereDAO();
+    private final NoteDAO noteDAO = new NoteDAO();
+    private final ParametreDAO parametreDAO = new ParametreDAO();
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        try (Connection conn = DatabaseConnection.getConnection()) {
-            List<Candidat> candidats = loadCandidats(conn);
-            List<Matiere> matieres = loadMatieres(conn);
-            request.setAttribute("candidats", candidats);
-            request.setAttribute("matieres", matieres);
+        try {
+            request.setAttribute("candidats", candidatDAO.findAll());
+            request.setAttribute("matieres", matiereDAO.findAll());
         } catch (SQLException e) {
             request.setAttribute("error", "Erreur de connexion à la base de données: " + e.getMessage());
         }
@@ -37,14 +40,14 @@ public class SimulationServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+
         int idCandidat = Integer.parseInt(request.getParameter("idCandidat"));
         int idMatiere = Integer.parseInt(request.getParameter("idMatiere"));
 
-        try (Connection conn = DatabaseConnection.getConnection()) {
+        try {
             // Load dropdown data again for the form
-            List<Candidat> candidats = loadCandidats(conn);
-            List<Matiere> matieres = loadMatieres(conn);
+            List<Candidat> candidats = candidatDAO.findAll();
+            List<Matiere> matieres = matiereDAO.findAll();
             request.setAttribute("candidats", candidats);
             request.setAttribute("matieres", matieres);
 
@@ -57,7 +60,7 @@ public class SimulationServlet extends HttpServlet {
             request.setAttribute("selectedMatiere", selectedMatiere);
 
             // 1. Fetch all notes for this (candidat, matiere)
-            List<Note> notes = loadNotes(conn, idCandidat, idMatiere);
+            List<Note> notes = noteDAO.findByCandidatAndMatiere(idCandidat, idMatiere);
             request.setAttribute("notes", notes);
 
             if (notes.isEmpty()) {
@@ -80,76 +83,15 @@ public class SimulationServlet extends HttpServlet {
             request.setAttribute("totalGap", totalGap);
 
             // 3. Load all parametres for this matiere
-            List<Parametre> parametres = loadParametres(conn, idMatiere);
+            List<Parametre> parametres = parametreDAO.findByMatiere(idMatiere);
             request.setAttribute("parametres", parametres);
 
             // 4. Find the matching parametre based on the operator symbol
-            Parametre matchedParametre = null;
-            for (Parametre p : parametres) {
-                String symb = p.getOperateur().getSymbole();
-                boolean isMatch = false;
-                
-                switch (symb) {
-                    case "<":
-                        isMatch = (totalGap < p.getMax());
-                        break;
-                    case ">=":
-                        isMatch = (totalGap >= p.getMin());
-                        break;
-                    case "<=":
-                        isMatch = (totalGap <= p.getMax());
-                        break;
-                    case ">":
-                        isMatch = (totalGap > p.getMin());
-                        break;
-                    case "between": // Fallback for original logic if needed
-                    default:
-                        isMatch = (totalGap >= p.getMin() && totalGap <= p.getMax());
-                        break;
-                }
-                
-                if (isMatch) {
-                    matchedParametre = p;
-                    break;
-                }
-            }
+            Parametre matchedParametre = findMatchingParametre(parametres, totalGap);
 
+            // 5. Fallback: find closest lower parametre if no exact match
             if (matchedParametre == null && parametres != null && !parametres.isEmpty()) {
-                Parametre closestParam = null;
-                double minDifference = Double.MAX_VALUE;
-
-                for (Parametre p : parametres) {
-                    double maxVal = p.getMax();
-                    double minVal = p.getMin();
-                    
-                    if (maxVal <= totalGap) {
-                        double diff = totalGap - maxVal;
-                        if (diff < minDifference) {
-                            minDifference = diff;
-                            closestParam = p;
-                        }
-                    }
-                    
-                    if (minVal <= totalGap) {
-                        double diff = totalGap - minVal;
-                        if (diff < minDifference) {
-                            minDifference = diff;
-                            closestParam = p;
-                        }
-                    }
-                }
-
-                if (closestParam == null) {
-                    double bestMinVal = Double.MAX_VALUE;
-                    for (Parametre p : parametres) {
-                        double currentMinParamVal = Math.min(p.getMin(), p.getMax());
-                        if (closestParam == null || currentMinParamVal < bestMinVal) {
-                            closestParam = p;
-                            bestMinVal = currentMinParamVal;
-                        }
-                    }
-                }
-                matchedParametre = closestParam;
+                matchedParametre = findClosestParametre(parametres, totalGap);
                 request.setAttribute("fallbackMessage", "Aucun seuil exact trouvé. Utilisation du paramètre le plus proche inférieur.");
             }
 
@@ -161,41 +103,9 @@ public class SimulationServlet extends HttpServlet {
                 return;
             }
 
-            // 5. Resolve the final grade based on the resolution ID or method
-            // Mapping: 1 -> Petit (Average), 2 -> Moyenne (Max), 3 -> Grand (Min)
-            // Note: Since I don't have the resolution table data in the model yet, 
-            // I'll use a mapping based on the ID or the operator name if it changed.
-            
-            double finalGrade = 0;
-            String resolutionMethod = "";
-            int resId = matchedParametre.getIdResolution();
-
-            if (resId == 1) {
-                finalGrade = notes.stream().mapToDouble(Note::getValeurNote).average().orElse(0);
-                resolutionMethod = "Moyenne des notes";
-            } else if (resId == 2) {
-                finalGrade = notes.stream().mapToDouble(Note::getValeurNote).max().orElse(0);
-                resolutionMethod = "Note la plus haute";
-            } else if (resId == 3) {
-                finalGrade = notes.stream().mapToDouble(Note::getValeurNote).min().orElse(0);
-                resolutionMethod = "Note la plus basse";
-            } else {
-                // Fallback to legacy operator-based resolution if no resolution ID matches
-                String opSymb = matchedParametre.getOperateur().getSymbole();
-                switch (opSymb) {
-                    case "+":
-                        finalGrade = notes.stream().mapToDouble(Note::getValeurNote).max().orElse(0);
-                        resolutionMethod = "Note la plus haute";
-                        break;
-                    case "-":
-                        finalGrade = notes.stream().mapToDouble(Note::getValeurNote).min().orElse(0);
-                        resolutionMethod = "Note la plus basse";
-                        break;
-                    default:
-                        finalGrade = notes.stream().mapToDouble(Note::getValeurNote).average().orElse(0);
-                        resolutionMethod = "Moyenne des notes";
-                }
-            }
+            // 6. Resolve the final grade based on the resolution ID
+            double finalGrade = calculateFinalGrade(notes, matchedParametre);
+            String resolutionMethod = getResolutionMethod(matchedParametre);
 
             // Round to 2 decimal places
             finalGrade = Math.round(finalGrade * 100.0) / 100.0;
@@ -211,97 +121,107 @@ public class SimulationServlet extends HttpServlet {
         request.getRequestDispatcher("/result.jsp").forward(request, response);
     }
 
-    private List<Candidat> loadCandidats(Connection conn) throws SQLException {
-        List<Candidat> list = new ArrayList<>();
-        String sql = "SELECT id, nom, prenom, matricule FROM candidat ORDER BY nom, prenom";
-        try (PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) {
-                Candidat c = new Candidat();
-                c.setId(rs.getInt("id"));
-                c.setNom(rs.getString("nom"));
-                c.setPrenom(rs.getString("prenom"));
-                c.setMatricule(rs.getString("matricule"));
-                list.add(c);
+    // --- Fonctions de calcul (logique métier dans le servlet) ---
+
+    private Parametre findMatchingParametre(List<Parametre> parametres, double totalGap) {
+        for (Parametre p : parametres) {
+            if (p.getOperateur() == null || p.getOperateur().getSymbole() == null) continue;
+
+            String symb = p.getOperateur().getSymbole();
+            boolean isMatch = false;
+
+            switch (symb) {
+                case "<":  isMatch = (totalGap < p.getMax()); break;
+                case ">=": isMatch = (totalGap >= p.getMin()); break;
+                case "<=": isMatch = (totalGap <= p.getMax()); break;
+                case ">":  isMatch = (totalGap > p.getMin()); break;
+                case "between":
+                default:   isMatch = (totalGap >= p.getMin() && totalGap <= p.getMax()); break;
+            }
+
+            if (isMatch) {
+                return p;
             }
         }
-        return list;
+        return null;
     }
 
-    private List<Matiere> loadMatieres(Connection conn) throws SQLException {
-        List<Matiere> list = new ArrayList<>();
-        String sql = "SELECT id_matiere, nom, coefficient FROM matiere ORDER BY nom";
-        try (PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) {
-                Matiere m = new Matiere();
-                m.setIdMatiere(rs.getInt("id_matiere"));
-                m.setNom(rs.getString("nom"));
-                m.setCoefficient(rs.getDouble("coefficient"));
-                list.add(m);
+    private Parametre findClosestParametre(List<Parametre> parametres, double totalGap) {
+        Parametre closestParam = null;
+        double minDifference = Double.MAX_VALUE;
+
+        for (Parametre p : parametres) {
+            double maxVal = p.getMax();
+            double minVal = p.getMin();
+
+            if (maxVal <= totalGap) {
+                double diff = totalGap - maxVal;
+                if (diff < minDifference) {
+                    minDifference = diff;
+                    closestParam = p;
+                }
             }
-        }
-        return list;
-    }
 
-    private List<Note> loadNotes(Connection conn, int idCandidat, int idMatiere) throws SQLException {
-        List<Note> list = new ArrayList<>();
-        String sql = "SELECT n.id, n.id_candidat, n.id_matiere, n.id_correcteur, n.valeur_note, c.nom as correcteur_nom "
-                + "FROM note n JOIN correcteur c ON n.id_correcteur = c.id "
-                + "WHERE n.id_candidat = ? AND n.id_matiere = ? ORDER BY c.nom";
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, idCandidat);
-            ps.setInt(2, idMatiere);
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    Note n = new Note();
-                    n.setId(rs.getInt("id"));
-                    n.setIdCandidat(rs.getInt("id_candidat"));
-                    n.setIdMatiere(rs.getInt("id_matiere"));
-                    n.setIdCorrecteur(rs.getInt("id_correcteur"));
-                    n.setValeurNote(rs.getDouble("valeur_note"));
-                    n.setCorrecteurNom(rs.getString("correcteur_nom"));
-                    list.add(n);
+            if (minVal <= totalGap) {
+                double diff = totalGap - minVal;
+                if (diff < minDifference) {
+                    minDifference = diff;
+                    closestParam = p;
                 }
             }
         }
-        return list;
-    }
 
-    private List<Parametre> loadParametres(Connection conn, int idMatiere) throws SQLException {
-        List<Parametre> list = new ArrayList<>();
-        String sql = "SELECT p.id, p.id_operateur, p.id_matiere, p.id_resolution, p.min, p.max, "
-                + "o.id as op_id, o.nom as op_nom, o.symbole as op_symbole "
-                + "FROM parametre p JOIN operateur o ON p.id_operateur = o.id "
-                + "WHERE p.id_matiere = ? ORDER BY p.min";
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, idMatiere);
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    Parametre p = new Parametre();
-                    p.setId(rs.getInt("id"));
-                    p.setIdOperateur(rs.getInt("id_operateur"));
-                    p.setIdMatiere(rs.getInt("id_matiere"));
-                    // Use a safe check for id_resolution if it was just added manually
-                    try {
-                        p.setIdResolution(rs.getInt("id_resolution"));
-                    } catch (SQLException e) {
-                        // Fallback if column still hasn't been added to the DB but is in SQL
-                        p.setIdResolution(0);
-                    }
-                    p.setMin(rs.getInt("min"));
-                    p.setMax(rs.getInt("max"));
-
-                    Operateur op = new Operateur();
-                    op.setId(rs.getInt("op_id"));
-                    op.setNom(rs.getString("op_nom"));
-                    op.setSymbole(rs.getString("op_symbole"));
-                    p.setOperateur(op);
-
-                    list.add(p);
+        if (closestParam == null) {
+            double bestMinVal = Double.MAX_VALUE;
+            for (Parametre p : parametres) {
+                double currentMinParamVal = Math.min(p.getMin(), p.getMax());
+                if (closestParam == null || currentMinParamVal < bestMinVal) {
+                    closestParam = p;
+                    bestMinVal = currentMinParamVal;
                 }
             }
         }
-        return list;
+        return closestParam;
+    }
+
+    private double calculateFinalGrade(List<Note> notes, Parametre matchedParametre) {
+        double finalGrade = 0;
+        int resId = matchedParametre.getIdResolution();
+
+        if (resId == 1) {
+            finalGrade = notes.stream().mapToDouble(Note::getValeurNote).average().orElse(0);
+        } else if (resId == 2) {
+            finalGrade = notes.stream().mapToDouble(Note::getValeurNote).max().orElse(0);
+        } else if (resId == 3) {
+            finalGrade = notes.stream().mapToDouble(Note::getValeurNote).min().orElse(0);
+        } else {
+            String opSymb = matchedParametre.getOperateur().getSymbole();
+            switch (opSymb) {
+                case "+":
+                    finalGrade = notes.stream().mapToDouble(Note::getValeurNote).max().orElse(0);
+                    break;
+                case "-":
+                    finalGrade = notes.stream().mapToDouble(Note::getValeurNote).min().orElse(0);
+                    break;
+                default:
+                    finalGrade = notes.stream().mapToDouble(Note::getValeurNote).average().orElse(0);
+            }
+        }
+        return finalGrade;
+    }
+
+    private String getResolutionMethod(Parametre matchedParametre) {
+        int resId = matchedParametre.getIdResolution();
+
+        if (resId == 1) return "Moyenne des notes";
+        if (resId == 2) return "Note la plus haute";
+        if (resId == 3) return "Note la plus basse";
+
+        String opSymb = matchedParametre.getOperateur().getSymbole();
+        switch (opSymb) {
+            case "+": return "Note la plus haute";
+            case "-": return "Note la plus basse";
+            default:  return "Moyenne des notes";
+        }
     }
 }
