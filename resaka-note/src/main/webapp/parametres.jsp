@@ -107,12 +107,10 @@
                         <tbody>
                             <c:forEach var="p" items="${parametres}">
                                 <tr>
-                                    <c:set var="mKey" value="param_${p.id}_matiere" />
-                                    <c:set var="rKey" value="param_${p.id}_resolution" />
-                                    <td>${requestScope[mKey]}</td>
+                                    <td>${p.matiereNom}</td>
                                     <td><span class="badge badge-mult">${p.operateur.symbole}</span></td>
                                     <td>${p.min} - ${p.max}</td>
-                                    <td><strong>${requestScope[rKey]}</strong></td>
+                                    <td><strong>${p.resolutionDesc}</strong></td>
                                     <td class="actions">
                                         <a href="${pageContext.request.contextPath}/parametres?action=edit&id=${p.id}" class="btn btn-edit btn-sm">✎</a>
                                         <a href="${pageContext.request.contextPath}/parametres?action=delete&id=${p.id}" class="btn btn-danger btn-sm" onclick="return confirm('Supprimer ce paramètre ?')">🗑</a>

@@ -1,6 +1,6 @@
 package com.resaka.servlet;
 
-import com.resaka.dao.DatabaseConnection;
+import com.resaka.dao.CandidatDAO;
 import com.resaka.model.Candidat;
 
 import javax.servlet.ServletException;
@@ -10,48 +10,30 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
-import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.sql.SQLException;
 
 @WebServlet("/candidats")
 public class CandidatServlet extends HttpServlet {
+
+    private final CandidatDAO candidatDAO = new CandidatDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String action = request.getParameter("action");
 
-        try (Connection conn = DatabaseConnection.getConnection()) {
+        try {
             if ("delete".equals(action)) {
                 int id = Integer.parseInt(request.getParameter("id"));
-                try (PreparedStatement ps = conn.prepareStatement("DELETE FROM candidat WHERE id = ?")) {
-                    ps.setInt(1, id);
-                    ps.executeUpdate();
-                }
+                candidatDAO.delete(id);
                 request.setAttribute("success", "Candidat supprimé avec succès.");
             } else if ("edit".equals(action)) {
                 int id = Integer.parseInt(request.getParameter("id"));
-                try (PreparedStatement ps = conn.prepareStatement("SELECT id, nom, prenom, matricule FROM candidat WHERE id = ?")) {
-                    ps.setInt(1, id);
-                    try (ResultSet rs = ps.executeQuery()) {
-                        if (rs.next()) {
-                            Candidat c = new Candidat(rs.getInt("id"), rs.getString("nom"), rs.getString("prenom"), rs.getString("matricule"));
-                            request.setAttribute("editCandidat", c);
-                        }
-                    }
-                }
+                Candidat c = candidatDAO.findById(id);
+                request.setAttribute("editCandidat", c);
             }
 
-            // Load all candidats
-            List<Candidat> list = new ArrayList<>();
-            try (PreparedStatement ps = conn.prepareStatement("SELECT id, nom, prenom, matricule FROM candidat ORDER BY nom, prenom");
-                 ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    list.add(new Candidat(rs.getInt("id"), rs.getString("nom"), rs.getString("prenom"), rs.getString("matricule")));
-                }
-            }
-            request.setAttribute("candidats", list);
+            request.setAttribute("candidats", candidatDAO.findAll());
         } catch (SQLException e) {
             request.setAttribute("error", "Erreur: " + e.getMessage());
         }
@@ -68,25 +50,12 @@ public class CandidatServlet extends HttpServlet {
         String prenom = request.getParameter("prenom");
         String matricule = request.getParameter("matricule");
 
-        try (Connection conn = DatabaseConnection.getConnection()) {
+        try {
             if (idStr != null && !idStr.isEmpty()) {
-                // UPDATE
-                try (PreparedStatement ps = conn.prepareStatement("UPDATE candidat SET nom=?, prenom=?, matricule=? WHERE id=?")) {
-                    ps.setString(1, nom);
-                    ps.setString(2, prenom);
-                    ps.setString(3, matricule);
-                    ps.setInt(4, Integer.parseInt(idStr));
-                    ps.executeUpdate();
-                }
+                candidatDAO.update(Integer.parseInt(idStr), nom, prenom, matricule);
                 request.setAttribute("success", "Candidat modifié avec succès.");
             } else {
-                // INSERT
-                try (PreparedStatement ps = conn.prepareStatement("INSERT INTO candidat (nom, prenom, matricule) VALUES (?, ?, ?)")) {
-                    ps.setString(1, nom);
-                    ps.setString(2, prenom);
-                    ps.setString(3, matricule);
-                    ps.executeUpdate();
-                }
+                candidatDAO.insert(nom, prenom, matricule);
                 request.setAttribute("success", "Candidat ajouté avec succès.");
             }
         } catch (SQLException e) {

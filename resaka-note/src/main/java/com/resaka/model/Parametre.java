@@ -8,6 +8,8 @@ public class Parametre {
     private int min;
     private int max;
     private Operateur operateur; // joined field
+    private String matiereNom;    // joined field for display
+    private String resolutionDesc; // joined field for display
 
     public Parametre() {}
 
@@ -34,4 +36,8 @@ public class Parametre {
     public void setMax(int max) { this.max = max; }
     public Operateur getOperateur() { return operateur; }
     public void setOperateur(Operateur operateur) { this.operateur = operateur; }
+    public String getMatiereNom() { return matiereNom; }
+    public void setMatiereNom(String matiereNom) { this.matiereNom = matiereNom; }
+    public String getResolutionDesc() { return resolutionDesc; }
+    public void setResolutionDesc(String resolutionDesc) { this.resolutionDesc = resolutionDesc; }
 }
