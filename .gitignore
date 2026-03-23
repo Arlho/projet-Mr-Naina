@@ -1,0 +1,12 @@
+target/
+bin/
+.settings/
+.project
+.classpath
+*.class
+*.log
+*.db
+foragedb*
+.idea/
+*.iml
+.DS_Store

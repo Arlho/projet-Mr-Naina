@@ -1,0 +1,55 @@
+
+CREATE DATABASE forage;
+
+\c forage;
+
+CREATE TABLE status (
+    id SERIAL PRIMARY KEY,
+    libelle VARCHAR(100) NOT NULL
+);
+
+CREATE TABLE typedevis (
+    id SERIAL PRIMARY KEY,
+    libelle VARCHAR(100) NOT NULL
+);
+
+CREATE TABLE client (
+    id SERIAL PRIMARY KEY,
+    nom VARCHAR(255) NOT NULL,
+    contact VARCHAR(255)
+);
+
+CREATE TABLE demande (
+    id SERIAL PRIMARY KEY,
+    date_demande DATE DEFAULT CURRENT_DATE,
+    client_id INTEGER REFERENCES client(id),
+    lieu VARCHAR(255),
+    district VARCHAR(255) 
+);
+
+CREATE TABLE devis (
+    id SERIAL PRIMARY KEY,
+    montant DECIMAL(15, 2) DEFAULT 0,
+    typedevis_id INTEGER REFERENCES typedevis(id),
+    date_devis DATE DEFAULT CURRENT_DATE,
+    demande_id INTEGER REFERENCES demande(id)
+);
+
+CREATE TABLE detailsdevis (
+    id SERIAL PRIMARY KEY,
+    devis_id INTEGER REFERENCES devis(id),
+    libelle VARCHAR(255),
+    montant DECIMAL(15, 2) NOT NULL
+);
+
+CREATE TABLE travaux (
+    id SERIAL PRIMARY KEY,
+    demande_id INTEGER REFERENCES demande(id)
+);
+
+CREATE TABLE travauxstatut (
+    id SERIAL PRIMARY KEY,
+    travaux_id INTEGER REFERENCES travaux(id),
+    status_id INTEGER REFERENCES status(id),
+    date_changement TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
