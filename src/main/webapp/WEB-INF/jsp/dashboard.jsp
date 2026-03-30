@@ -14,6 +14,7 @@
     </style>
 </head>
 <body>
+    <jsp:include page="nav.jsp" />
     <div class="container">
         <header>
             <div>
@@ -147,5 +148,6 @@
         }
         document.getElementById('dateInput').valueAsDate = new Date();
     </script>
+    <a href="/backoffice">Repondre au demande</a>
 </body>
 </html>

@@ -3,7 +3,7 @@ CREATE DATABASE forage;
 
 \c forage;
 
-CREATE TABLE status (
+CREATE TABLE status_devis (
     id SERIAL PRIMARY KEY,
     libelle VARCHAR(100) NOT NULL
 );
@@ -40,6 +40,13 @@ CREATE TABLE detailsdevis (
     devis_id INTEGER REFERENCES devis(id),
     libelle VARCHAR(255),
     montant DECIMAL(15, 2) NOT NULL
+);
+
+CREATE TABLE historique_status_devis (
+    id SERIAL PRIMARY KEY,
+    devis_id INTEGER REFERENCES devis(id),
+    status_devis_id INTEGER REFERENCES status_devis(id),
+    date_status DATE DEFAULT CURRENT_DATE
 );
 
 CREATE TABLE travaux (
