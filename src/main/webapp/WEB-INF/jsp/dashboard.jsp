@@ -5,30 +5,33 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Forage Dashboard (JSP Version)</title>
+    <title>Forage Dashboard</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
-    <style>
-        .grid-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
-        @media (max-width: 900px) { .grid-layout { grid-template-columns: 1fr; } }
-        .form-section { background: #fdfdfd; padding: 15px; border: 1px dashed #ccc; margin-bottom: 15px; }
-    </style>
 </head>
 <body>
+    <nav class="global-navbar">
+        <span class="nav-brand">ETU3558</span>
+        <a href="${pageContext.request.contextPath}/">FrontOffice (Dashboard)</a>
+        <a href="${pageContext.request.contextPath}/backoffice">BackOffice</a>
+        <a href="${pageContext.request.contextPath}/statistique">Statistiques</a>
+    </nav>
     <div class="container">
         <header>
             <div>
-                <h1>Système Forage (JSP)</h1>
-                <p style="color: #666">Gestion des projets et suivi des demandes</p>
+                <h1>Système Forage</h1>
+                <p>Gestion des projets et suivi des demandes</p>
             </div>
-            <div class="badge">Session : Sprint 3</div>
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <span class="badge">Session : Sprint 3</span>
+            </div>
         </header>
 
-        <div class="grid-layout">
+        <%-- <div class="grid-layout"> --%>
             <!-- CARTE CLIENTS -->
             <div class="card">
                 <h2>
                     <span>Clients</span>
-                    <button class="btn btn-primary" onclick="toggleForm('clientForm')">+ Nouveau Client</button>
+                    <button class="btn btn-primary" onclick="toggleForm('clientForm')">+ Nouveau</button>
                 </h2>
 
                 <div id="clientForm" class="form-section" style="display: none;">
@@ -71,11 +74,13 @@
                 </div>
             </div>
 
+            <tr></tr>
+
             <!-- CARTE DEMANDES -->
             <div class="card">
                 <h2>
                     <span>Demandes</span>
-                    <button class="btn btn-primary" onclick="toggleForm('demandeForm')">+ Nouvelle Demande</button>
+                    <button class="btn btn-primary" onclick="toggleForm('demandeForm')">+ Nouvelle</button>
                 </h2>
 
                 <div id="demandeForm" class="form-section" style="display: none;">
@@ -89,13 +94,15 @@
                                 </c:forEach>
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label>Lieu</label>
-                            <input type="text" name="lieu" placeholder="Antananarivo" required>
-                        </div>
-                        <div class="form-group">
-                            <label>District</label>
-                            <input type="text" name="district" placeholder="District">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                            <div class="form-group">
+                                <label>Lieu</label>
+                                <input type="text" name="lieu" placeholder="Antananarivo" required>
+                            </div>
+                            <div class="form-group">
+                                <label>District</label>
+                                <input type="text" name="district" placeholder="District">
+                            </div>
                         </div>
                         <div class="form-group">
                             <label>Date</label>
@@ -112,6 +119,7 @@
                                 <th>Date</th>
                                 <th>Client</th>
                                 <th>Localisation</th>
+                                <th>Statut</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -124,9 +132,18 @@
                                     </td>
                                     <td>
                                         <span>${demande.lieu}</span><br>
-                                        <small style="color: #666;">${demande.district}</small>
+                                        <small style="color: var(--text-muted);">${demande.district}</small>
                                     </td>
+                                        <td>
+                                            ${lastStatuses[demande.id].status.libelle}
+                                        </td>
                                     <td class="action-btns">
+                                        <form action="${pageContext.request.contextPath}/demande/details/${demande.id}" method="POST">
+                                            <button type="submit" class="btn btn-danger">Details</button>
+                                        </form>
+                                        <form action="${pageContext.request.contextPath}/demande/majform/${demande.id}" method="POST">
+                                            <button type="submit" class="btn btn-danger">Modifier</button>
+                                        </form>
                                         <form action="${pageContext.request.contextPath}/demande/delete/${demande.id}" method="POST" onsubmit="return confirm('Confirmer la suppression ?');">
                                             <button type="submit" class="btn btn-danger">Supprimer</button>
                                         </form>
@@ -138,7 +155,7 @@
                 </div>
             </div>
         </div>
-    </div>
+    <%-- </div> --%>
 
     <script>
         function toggleForm(id) {

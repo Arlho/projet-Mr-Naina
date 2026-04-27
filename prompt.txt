@@ -1,0 +1,5 @@
+ajoute un nav qui reste fixe en haut dans n importe quelle page avec un mot ETU3558
+dans statistique, fais que les Nombre de Clients, Total des Demandes, Types de Statuts sont cliquables, ca emmene vers une liste de chacun d eux comme dans notre page frontend par exemple on a deja la liste des clients, et ainsi de suite  
+
+
+est ce possible d ajouter une methode genre quand je crée une demande, ca prend la date et l heure de la demande, et apres quand on crée un devis pour cette demande, on prend la date de création du devis et on compare les deux pour avoir la durée entre les deux, deja quand on crée un devis il y a un statut de base pour ca, et apres quand on change le statut on prend la date de ce changement et on prend la durée à chaque changement du statut

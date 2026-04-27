@@ -1,0 +1,58 @@
+
+Pour un site e-commerce, l’optimisation des images d’assets joue un rôle très important. Pour commencer, un bon site a plusieurs critères : un design bien défini, un parcours utilisateur bien optimisé, mais le plus important, c’est sa rapidité.
+
+En termes de rapidité, l’optimisation des images joue un rôle très important, car plus le site charge beaucoup d’images, plus il ralentit. Cela peut aussi consommer en excès la connexion de l’utilisateur.
+
+En parlant d’e-commerce, le concept principal est de présenter des produits : leurs informations, leurs prix, ainsi que leur présentation en image. Alors, voici comment peut-on appliquer l’optimisation des images dans ce type de site :
+
+- Page d’accueil
+
+    Images concernées :
+
+        Bannière
+        Tous les produits
+        Catégories
+
+    Optimisations :
+
+        Compresser au maximum les images (tout en gardant une bonne qualité et en faisant en sorte que la compression ne soit pas visible)
+        Utiliser des formats modernes (WebP / AVIF)
+        Charger d’abord uniquement les images visibles, et non toutes (lazy loading pour le reste)
+        Utiliser des images responsives
+
+- Page détail produit
+
+    Images importantes :
+
+        Image principale
+        Photos du produit sous plusieurs angles
+
+    Optimisations :
+
+        Image principale : haute qualité mais compressée, en utilisant toujours les formats WebP ou AVIF
+        Toutes les photos du produit : chargées uniquement lorsque l’utilisateur clique sur  voir les photos 
+
+- Panier
+
+    Images :
+
+        Petites images des produits dans le panier
+
+    Optimisations :
+
+        Très petites tailles
+        Compression maximale
+
+- Mobile
+
+    Problème :
+
+        Connexion lente et écran de petite taille
+
+    Solutions :
+
+        Utiliser des images responsives
+        Utiliser des images de petite taille adaptées à l’écran d’un téléphone
+        Toujours compresser les images et utiliser les formats WebP et AVIF
+
+Même si ces techniques existent, il ne faut pas en abuser. Par exemple, trop compresser une image peut nuire à sa qualité. Il faut donc les utiliser avec équilibre et moderation.
